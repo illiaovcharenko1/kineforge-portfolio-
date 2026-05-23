@@ -5,16 +5,16 @@
 \usepackage{algorithmic}
 \usepackage{subcaption}
 
-\title{\textbf{RaZOOM: Sample-Efficient Embodied Control with Frozen Semantic Priors and Differentiable Physics}\\[0.4em]
+\title{\textbf{KineForge: Sample-Efficient Embodied Control with Frozen Semantic Priors and Differentiable Physics}\\[0.4em]
 \large Technical Report v1.0}
-\author{Illia Ovcharenko \\ RaZOOM Research \\ \texttt{contact@razoom.ai}}
+\author{Illia Ovcharenko \\ KineForge Research \\ \texttt{contact@kineforge.ai}}
 \date{May 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Embodied reinforcement learning often depends on large human demonstration datasets or billion-parameter foundation policies, limiting deployment where teleoperation is unsafe or uneconomical. We present \textbf{RaZOOM}, combining differentiable physics (MuJoCo MJX) with a \textbf{multi-stream policy} that separates reflexive control, affect-modulated valuation, and topology-routed deliberation. A \textbf{frozen semantic prior} (${\sim}$2.6M parameters) supplies structured inductive bias while ${\sim}$157K policy parameters are updated during learning, enabling single-GPU training and CPU inference under 10\,ms. On NVIDIA H200 rollouts (${\ge}$345K environment steps in monolithic jobs) and controlled 100K-step A/B studies, agents reach task rewards ${\sim}$0.70 with stable homeostatic metrics. Optional sensory grounding trades throughput (${\sim}$159 vs.\ ${\sim}$108 env-steps/s) for comparable task success. We describe a sanitized evaluation protocol; proprietary prior databases are not released.
+Embodied reinforcement learning often depends on large human demonstration datasets or billion-parameter foundation policies, limiting deployment where teleoperation is unsafe or uneconomical. We present \textbf{KineForge}, combining differentiable physics (MuJoCo MJX) with a \textbf{multi-stream policy} that separates reflexive control, affect-modulated valuation, and topology-routed deliberation. A \textbf{frozen semantic prior} (${\sim}$2.6M parameters) supplies structured inductive bias while ${\sim}$157K policy parameters are updated during learning, enabling single-GPU training and CPU inference under 10\,ms. On NVIDIA H200 rollouts (${\ge}$345K environment steps in monolithic jobs) and controlled 100K-step A/B studies, agents reach task rewards ${\sim}$0.70 with stable homeostatic metrics. Optional sensory grounding trades throughput (${\sim}$159 vs.\ ${\sim}$108 env-steps/s) for comparable task success. We describe a sanitized evaluation protocol; proprietary prior databases are not released.
 \end{abstract}
 
 \section{Introduction}
@@ -22,7 +22,7 @@ Embodied reinforcement learning often depends on large human demonstration datas
 
 Training physical agents at scale remains bottlenecked by \emph{data}, not compute. Industrial manipulation, hazardous material handling, and remote logistics often forbid the collection of large teleoperation corpora. Recent vision-language-action (VLA) and foundation policies achieve strong performance but require web-scale pretraining, cloud inference, and demonstration-heavy fine-tuning~\cite{brohan2023rt2,ye2024rlfp}. Model-based reinforcement learning (MBRL) with learned world models reduces sample complexity in simulation~\cite{hafner2023dreamerv3}, yet struggles on novel tasks without structural priors.
 
-We argue that \textbf{structured inductive bias}---not parameter count---is the lever for sample-efficient embodied control. \textbf{RaZOOM} is a lightweight stack that couples (i) \textbf{differentiable physics simulation} (MJX) for gradient-friendly rollouts, (ii) a \textbf{multi-stream policy} with parallel reflex, affect, and planning pathways, and (iii) a \textbf{frozen semantic prior} encoding domain structure without online supervision. The trainable policy is compact (${\sim}$157K parameters); priors remain fixed (${\sim}$2.6M parameters), decoupling representation learning from control learning.
+We argue that \textbf{structured inductive bias}---not parameter count---is the lever for sample-efficient embodied control. \textbf{KineForge} is a lightweight stack that couples (i) \textbf{differentiable physics simulation} (MJX) for gradient-friendly rollouts, (ii) a \textbf{multi-stream policy} with parallel reflex, affect, and planning pathways, and (iii) a \textbf{frozen semantic prior} encoding domain structure without online supervision. The trainable policy is compact (${\sim}$157K parameters); priors remain fixed (${\sim}$2.6M parameters), decoupling representation learning from control learning.
 
 \paragraph{Contributions.}
 \begin{itemize}
@@ -39,7 +39,7 @@ In aggregated 100K-step studies, baseline agents achieve mean task reward ${\sim
 \label{sec:related}
 
 \paragraph{Sample-efficient embodied RL.}
-RL with foundation priors (RLFP) demonstrates that frozen value and success models can accelerate real-robot learning~\cite{ye2024rlfp}. RaZOOM differs by using \emph{structured symbolic priors} rather than general VLMs, targeting edge deployability.
+RL with foundation priors (RLFP) demonstrates that frozen value and success models can accelerate real-robot learning~\cite{ye2024rlfp}. KineForge differs by using \emph{structured symbolic priors} rather than general VLMs, targeting edge deployability.
 
 \paragraph{World models and differentiable simulation.}
 DreamerV3 learns latent dynamics for long-horizon control~\cite{hafner2023dreamerv3}. Differentiable engines (Brax/MJX) enable gradients through physics~\cite{freeman2021mjx}. We use MJX as the environment backend while learning a factored policy rather than a monolithic world model.
@@ -66,7 +66,7 @@ Let $\theta$ denote trainable policy parameters ($|\theta|{\approx}1.57{\times}1
 
 \subsection{System overview}
 
-Figure~\ref{fig:architecture} illustrates RaZOOM. Per timestep, the agent encodes observations, retrieves a frozen semantic embedding, and routes decisions through three streams before actuating the differentiable simulator.
+Figure~\ref{fig:architecture} illustrates KineForge. Per timestep, the agent encodes observations, retrieves a frozen semantic embedding, and routes decisions through three streams before actuating the differentiable simulator.
 
 \begin{figure}[t]
   \centering
@@ -75,7 +75,7 @@ Figure~\ref{fig:architecture} illustrates RaZOOM. Per timestep, the agent encode
   \small Observations $\rightarrow$ Frozen semantic encoder $\rightarrow$ \\
   Fast (reflex) $\parallel$ Valence (affect) $\parallel$ Slow (topology route) $\rightarrow$ MJX\\
   \vspace{2.8em}}}
-  \caption{RaZOOM control stack. Public diagrams omit proprietary graph connectivity and prior token identities.}
+  \caption{KineForge control stack. Public diagrams omit proprietary graph connectivity and prior token identities.}
   \label{fig:architecture}
 \end{figure}
 
@@ -129,7 +129,7 @@ High-resonance trajectory blocks trigger shallow offline updates (policy nudge) 
 
 \subsection{Implementation notes}
 
-RaZOOM is implemented in Python with JAX (no PyTorch). Orchestration uses SkyPilot on Kubernetes (Nebius H200). Metrics (steps per second, homeostasis, conflict rate) log to MLflow. We withhold source-level module names, graph construction rules, and prior databases.
+KineForge is implemented in Python with JAX (no PyTorch). Orchestration uses SkyPilot on Kubernetes (Nebius H200). Metrics (steps per second, homeostasis, conflict rate) log to MLflow. We withhold source-level module names, graph construction rules, and prior databases.
 
 \section{Experiments}
 \label{sec:experiments}
@@ -144,10 +144,10 @@ Training runs on NVIDIA H200 (MIG slices, CUDA 13) with containerized dependenci
 We compare \texttt{baseline} against \texttt{rich128\_grounded} (grounded sensory append) and sensory variants. Metrics: task reward, reward mean, intrinsic reward, approximate steps/s, checkpoint count.
 
 \paragraph{JAX monolithic.}
-\texttt{jax\_razoom\_runtime.py} logs SPS, homeostasis variance, conflict rate, food concentration, nutrition gap, and discrete state index.
+\texttt{jax\_kineforge\_runtime.py} logs SPS, homeostasis variance, conflict rate, food concentration, nutrition gap, and discrete state index.
 
 \paragraph{Baselines.}
-We report DreamerV3 configurations present in the repository as exploratory baselines; primary claims use RaZOOM multi-stream runs.
+We report DreamerV3 configurations present in the repository as exploratory baselines; primary claims use KineForge multi-stream runs.
 
 \subsection{Evaluation metrics}
 
@@ -178,7 +178,7 @@ Baseline task reward remains near 0.70 for horizons $10^4$--$10^5$ steps; at $2{
 Policy inference targets CPU execution under 10\,ms per decision for edge deployment; exact latency depends on observation dimensionality (benchmarked separately).
 
 \paragraph{Comparison to foundation approaches.}
-Unlike billion-parameter VLA models, RaZOOM prioritizes \textbf{structure over scale}: frozen priors plus compact $\theta$ enable training in hours on a single GPU rather than weeks on clusters.
+Unlike billion-parameter VLA models, KineForge prioritizes \textbf{structure over scale}: frozen priors plus compact $\theta$ enable training in hours on a single GPU rather than weeks on clusters.
 
 \section{Limitations}
 \label{sec:limitations}
@@ -193,7 +193,7 @@ Unlike billion-parameter VLA models, RaZOOM prioritizes \textbf{structure over s
 \section{Conclusion}
 \label{sec:conclusion}
 
-RaZOOM demonstrates that embodied agents can train without human demonstrations when structured semantic priors and differentiable physics are combined with a multi-stream policy. Future work targets real-robot pilots, public inference APIs, and open benchmarks with sanitized priors.
+KineForge demonstrates that embodied agents can train without human demonstrations when structured semantic priors and differentiable physics are combined with a multi-stream policy. Future work targets real-robot pilots, public inference APIs, and open benchmarks with sanitized priors.
 
 \bibliographystyle{plain}
 \bibliography{references}

@@ -1,4 +1,4 @@
-# RaZOOM Public Demo
+# KineForge Public Demo
 
 Safe for portfolio: **no weights**, **no prior database**.
 
@@ -13,7 +13,7 @@ python demo/gradio_app.py
 Optional private mode (local only):
 
 ```bash
-export RAZOOM_CHECKPOINT=remote_training_data/checkpoints/step_10000.json
+export KINEFORGE_CHECKPOINT=remote_training_data/checkpoints/step_10000.json
 python demo/gradio_app.py
 ```
 

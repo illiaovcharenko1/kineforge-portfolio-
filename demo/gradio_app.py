@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Public-safe Gradio demo for RaZOOM multi-stream policy.
-Does NOT load proprietary prior databases. Optional local checkpoint via RAZOOM_CHECKPOINT env.
+Public-safe Gradio demo for KineForge multi-stream policy.
+Does NOT load proprietary prior databases. Optional local checkpoint via KINEFORGE_CHECKPOINT env.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ MOCK_MODE = True
 NETWORK = None
 
 try:
-    from razoom_runtime.triune_neural_network import TriuneNeuralNetwork
+    from kineforge_runtime.triune_neural_network import TriuneNeuralNetwork
 
     MOCK_MODE = False
 except Exception:
@@ -46,7 +46,7 @@ def run_inference(
     pentagram_vector = [rng.uniform(-0.2, 0.2) for _ in range(22)]
     emotion_vector = [emotion_0, emotion_1] + [0.0] * 5
 
-    ckpt = checkpoint_path.strip() or os.environ.get("RAZOOM_CHECKPOINT", "")
+    ckpt = checkpoint_path.strip() or os.environ.get("KINEFORGE_CHECKPOINT", "")
     if not MOCK_MODE and ckpt and Path(ckpt).is_file():
         net = TriuneNeuralNetwork.from_checkpoint(ckpt, rng)
         logits = net.forward(features, root_embeddings, pentagram_vector, emotion_vector)
@@ -68,16 +68,16 @@ def run_inference(
         f"head (2): argmax ~ {_mock_logits(seed + 2, 2).index(max(_mock_logits(seed + 2, 2)))}",
         f"macro (4): argmax ~ {_mock_logits(seed + 3, 4).index(max(_mock_logits(seed + 3, 4)))}",
         "",
-        "Set RAZOOM_CHECKPOINT=/path/to/step_*.json for local private demo.",
+        "Set KINEFORGE_CHECKPOINT=/path/to/step_*.json for local private demo.",
     ]
     return "\n".join(lines)
 
 
 def build_ui() -> gr.Blocks:
-    with gr.Blocks(title="RaZOOM Policy Demo") as demo:
+    with gr.Blocks(title="KineForge Policy Demo") as demo:
         gr.Markdown(
             """
-# RaZOOM — Multi-Stream Embodied Policy (Public Demo)
+# KineForge — Multi-Stream Embodied Policy (Public Demo)
 
 Sample-efficient control with **frozen semantic priors** + **differentiable physics**.
 This demo does **not** expose proprietary embeddings or full checkpoints.
@@ -92,7 +92,7 @@ This demo does **not** expose proprietary embeddings or full checkpoints.
             route_0 = gr.Slider(-1, 1, value=0.0, label="Route dim 0 (display only in mock)")
         checkpoint_path = gr.Textbox(
             label="Checkpoint path (optional, local only)",
-            placeholder="RAZOOM_CHECKPOINT or path to step_*.json",
+            placeholder="KINEFORGE_CHECKPOINT or path to step_*.json",
         )
         out = gr.Textbox(label="Output", lines=12)
         btn = gr.Button("Run inference", variant="primary")
