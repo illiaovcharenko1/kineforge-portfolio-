@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="380">
+<rect width="100%" height="100%" fill="white"/>
+<text x="350" y="28" text-anchor="middle" font-size="14" font-family="Helvetica">100K-step variants</text>
+<rect x="60" y="75.70373039727514" width="40" height="244.29626960272486" fill="#10b981"/><text x="80.0" y="336" text-anchor="middle" font-size="10" font-family="Helvetica">baseline</text><text x="80.0" y="69.70373039727514" text-anchor="middle" font-size="10">0.705</text><text x="80.0" y="48" text-anchor="middle" font-size="10" fill="#f59e0b">159 st/s</text>
+<rect x="180" y="76.62146797430461" width="40" height="243.3785320256954" fill="#10b981"/><text x="200.0" y="336" text-anchor="middle" font-size="10" font-family="Helvetica">rich128_grounded</text><text x="200.0" y="70.62146797430461" text-anchor="middle" font-size="10">0.702</text><text x="200.0" y="48" text-anchor="middle" font-size="10" fill="#f59e0b">107 st/s</text>
+</svg>

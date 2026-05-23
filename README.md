@@ -1,0 +1,33 @@
+# razoom-demo (public portfolio)
+
+Safe public subset — **no weights, no roots_db, no topology JSON**.
+
+## Contents
+
+- `demo/` — Gradio public inference mock
+- `paper/` — Tech report PDF (generate locally)
+- `figures/` — SVG plots from Nebius experiments
+- `LICENSE` — Apache-2.0 (suggested)
+
+## Setup
+
+```bash
+pip install -r demo/requirements.txt
+export PYTHONPATH=src   # only if using private submodule
+python demo/gradio_app.py
+```
+
+## Build paper PDF
+
+```bash
+cd research_paper_resources/paper
+# install MacTeX or use Overleaf with main.tex + appendix.tex + references.bib
+pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex main.tex
+cp main.pdf ../../public_razoom_demo/paper/RaZOOM_TechReport_v1.pdf
+```
+
+## What stays private
+
+- `roots_db.json`, pentagram indices, cube topology
+- Full `src/razoom_runtime/`
+- S3 credentials (use regional endpoint `storage.us-central1.nebius.cloud`)

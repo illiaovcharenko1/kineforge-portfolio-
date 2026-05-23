@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="380">
+<rect width="100%" height="100%" fill="white"/>
+<text x="320.0" y="28" text-anchor="middle" font-size="14" font-family="Helvetica">Baseline task reward vs. training horizon</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="2" points="56.0,313.5 56.1,314.7 82.3,65.6 108.7,65.6 187.9,65.6 320.0,65.3 584.0,97.8"/>
+</svg>

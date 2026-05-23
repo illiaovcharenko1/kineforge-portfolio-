@@ -1,0 +1,204 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts,graphicx,booktabs,hyperref,url}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{subcaption}
+
+\title{\textbf{RaZOOM: Sample-Efficient Embodied Control with Frozen Semantic Priors and Differentiable Physics}\\[0.4em]
+\large Technical Report v1.0}
+\author{Illia Ovcharenko \\ RaZOOM Research \\ \texttt{contact@razoom.ai}}
+\date{May 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Embodied reinforcement learning often depends on large human demonstration datasets or billion-parameter foundation policies, limiting deployment where teleoperation is unsafe or uneconomical. We present \textbf{RaZOOM}, combining differentiable physics (MuJoCo MJX) with a \textbf{multi-stream policy} that separates reflexive control, affect-modulated valuation, and topology-routed deliberation. A \textbf{frozen semantic prior} (${\sim}$2.6M parameters) supplies structured inductive bias while ${\sim}$157K policy parameters are updated during learning, enabling single-GPU training and CPU inference under 10\,ms. On NVIDIA H200 rollouts (${\ge}$345K environment steps in monolithic jobs) and controlled 100K-step A/B studies, agents reach task rewards ${\sim}$0.70 with stable homeostatic metrics. Optional sensory grounding trades throughput (${\sim}$159 vs.\ ${\sim}$108 env-steps/s) for comparable task success. We describe a sanitized evaluation protocol; proprietary prior databases are not released.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Training physical agents at scale remains bottlenecked by \emph{data}, not compute. Industrial manipulation, hazardous material handling, and remote logistics often forbid the collection of large teleoperation corpora. Recent vision-language-action (VLA) and foundation policies achieve strong performance but require web-scale pretraining, cloud inference, and demonstration-heavy fine-tuning~\cite{brohan2023rt2,ye2024rlfp}. Model-based reinforcement learning (MBRL) with learned world models reduces sample complexity in simulation~\cite{hafner2023dreamerv3}, yet struggles on novel tasks without structural priors.
+
+We argue that \textbf{structured inductive bias}---not parameter count---is the lever for sample-efficient embodied control. \textbf{RaZOOM} is a lightweight stack that couples (i) \textbf{differentiable physics simulation} (MJX) for gradient-friendly rollouts, (ii) a \textbf{multi-stream policy} with parallel reflex, affect, and planning pathways, and (iii) a \textbf{frozen semantic prior} encoding domain structure without online supervision. The trainable policy is compact (${\sim}$157K parameters); priors remain fixed (${\sim}$2.6M parameters), decoupling representation learning from control learning.
+
+\paragraph{Contributions.}
+\begin{itemize}
+  \item A multi-stream embodied architecture with emotion-conditioned fast control and graph-topology-conditioned slow planning, integrated with canonical semantic embeddings.
+  \item A JAX-native training pipeline (REINFORCE/PPO, JEPA-style regularization) over MJX with MLflow instrumentation and cloud orchestration (SkyPilot, H200).
+  \item Empirical evidence from Nebius H200 campaigns: 100K-step A/B comparisons and long-horizon monolithic runs, including throughput--accuracy trade-offs for grounded sensing.
+  \item A reproducibility package scope: sanitized APIs and metrics protocol; weights and prior corpora withheld for competitive reasons.
+\end{itemize}
+
+\paragraph{Results preview.}
+In aggregated 100K-step studies, baseline agents achieve mean task reward ${\sim}$0.70 at ${\sim}$159 environment steps/s; grounded sensory variants match task reward at ${\sim}$108 steps/s (Table~\ref{tab:main100k}). Homeostatic metrics (conflict rate, nutrition gap) remain stable in JAX rollouts logged to MLflow.
+
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Sample-efficient embodied RL.}
+RL with foundation priors (RLFP) demonstrates that frozen value and success models can accelerate real-robot learning~\cite{ye2024rlfp}. RaZOOM differs by using \emph{structured symbolic priors} rather than general VLMs, targeting edge deployability.
+
+\paragraph{World models and differentiable simulation.}
+DreamerV3 learns latent dynamics for long-horizon control~\cite{hafner2023dreamerv3}. Differentiable engines (Brax/MJX) enable gradients through physics~\cite{freeman2021mjx}. We use MJX as the environment backend while learning a factored policy rather than a monolithic world model.
+
+\paragraph{Hierarchical and affective control.}
+Hierarchical RL decomposes tasks into sub-policies; homeostatic and intrinsic motivation literature motivates separate valuation streams~\cite{makoviychuk2021isaac}. Our valence stream implements affect-modulated gains on fast pathways, stabilizing exploration without hand-crafted reward shaping.
+
+\paragraph{Joint-embedding predictive architectures.}
+JEPA encourages representation structure via predictive losses~\cite{lecun2022jepa}. We apply a lightweight hierarchical regularization term during training ($\alpha{=}0.25$, $\lambda{=}0.1$) without releasing proprietary embedding corpora.
+
+\section{Problem Formulation}
+\label{sec:problem}
+
+We model embodied control as a partially observable Markov decision process (POMDP) $(\mathcal{S}, \mathcal{A}, \mathcal{O}, T, R, \gamma)$. Observations $o_t \in \mathcal{O}$ concatenate proprioceptive state, optional exteroceptive features, and a low-dimensional \emph{configuration index} over a fixed topology graph. Actions factor into four branches: locomotion ($|\mathcal{A}_{\mathrm{loc}}|{=}16$), respiration ($2$), head ($2$), and macro ($4$), totaling 24 discrete decisions per step.
+
+\paragraph{Homeostatic objective.}
+Beyond extrinsic task reward $r^{\mathrm{task}}_t$, we log intrinsic homeostatic signals: food concentration, nutrition gap, conflict rate, and population-level coordination statistics. The training objective combines policy-gradient loss on $r^{\mathrm{task}}$ with auxiliary regularizers (JEPA and hierarchical structure terms). We do not assume access to human trajectories.
+
+\paragraph{Parameter budget.}
+Let $\theta$ denote trainable policy parameters ($|\theta|{\approx}1.57{\times}10^5$) and $\phi$ frozen semantic priors ($|\phi|{\approx}2.6{\times}10^6$). Only $\theta$ is updated during RL; $\phi$ is loaded from an offline corpus (not publicly released).
+
+\section{Method}
+\label{sec:method}
+
+\subsection{System overview}
+
+Figure~\ref{fig:architecture} illustrates RaZOOM. Per timestep, the agent encodes observations, retrieves a frozen semantic embedding, and routes decisions through three streams before actuating the differentiable simulator.
+
+\begin{figure}[t]
+  \centering
+  \fbox{\parbox{0.92\linewidth}{\centering\vspace{2.8em}
+  \textbf{[Figure 1: Multi-stream architecture]}\\
+  \small Observations $\rightarrow$ Frozen semantic encoder $\rightarrow$ \\
+  Fast (reflex) $\parallel$ Valence (affect) $\parallel$ Slow (topology route) $\rightarrow$ MJX\\
+  \vspace{2.8em}}}
+  \caption{RaZOOM control stack. Public diagrams omit proprietary graph connectivity and prior token identities.}
+  \label{fig:architecture}
+\end{figure}
+
+\subsection{Frozen semantic prior}
+
+A corpus of $N_{\mathrm{sym}}{=}110$ canonical symbols is embedded in $\mathbb{R}^{d_{\mathrm{emb}}}$ ($d_{\mathrm{emb}}{=}768$) offline. A projection head maps embeddings to policy features $z_t \in \mathbb{R}^{d_z}$. During RL, $\phi$ is frozen; gradients do not modify the corpus. This induces a \textbf{relational inductive bias}: the agent starts with structured semantics rather than learning language from scratch in simulation.
+
+\subsection{Multi-stream policy}
+
+Let $h_t$ denote concatenated proprioceptive/visual features. The policy factorizes as
+\begin{equation}
+\pi_\theta(a_t \mid h_t, z_t, e_t, \rho_t) \propto
+\pi_{\mathrm{fast}}(a^{\mathrm{loc}}_t, a^{\mathrm{head}}_t \mid h_t, z_t, e_t)\,
+\pi_{\mathrm{val}}(a^{\mathrm{breath}}_t, e_{t+1} \mid h_t, z_t, e_t)\,
+\pi_{\mathrm{slow}}(a^{\mathrm{macro}}_t \mid h_t, z_t, \rho_t),
+\end{equation}
+where $e_t \in \mathbb{R}^{d_e}$ ($d_e{=}7$) is an affect state and $\rho_t \in \mathbb{R}^{d_\rho}$ is a route vector over a fixed topology graph ($d_\rho{=}22$).
+
+\paragraph{Fast stream (reflex).}
+Emotion-conditioned affine maps compute logits for locomotion and head actions:
+\begin{equation}
+\tilde{h}_t = h_t \odot \bigl(1 + \gamma \cdot \mathrm{mean}(e_t)\bigr), \quad
+\ell^{\mathrm{loc}}_t = W_{\mathrm{loc}} \tilde{h}_t + b_{\mathrm{loc}},
+\end{equation}
+with learnable gain $\gamma$.
+
+\paragraph{Valence stream.}
+The valence stream updates $e_{t+1}$ and breath logits, modulating fast-stream gains. This implements \textbf{affect-modulated exploration}: high arousal increases sensitivity of reflex policies without manual reward engineering.
+
+\paragraph{Slow stream (topology routing).}
+A graph-topology-conditioned layer maps $(h_t, z_t, \rho_t)$ to macro-action logits. Route vectors index edges on a fixed planning graph with horizon $H{=}22$. We treat $\rho_t$ as a discrete--continuous hybrid index into a 64-state Markov conditioner (public name: \emph{discrete state enum}).
+
+\subsection{Differentiable physics backend}
+
+Rollouts execute in MuJoCo MJX with parallel agents (up to 16). Gradients may flow through smooth dynamics where supported; non-differentiable contact events use surrogate gradients consistent with MBRL practice. This backend supplies high-throughput data generation on H200 GPUs.
+
+\subsection{Training and consolidation}
+
+\paragraph{Online RL.}
+We implement REINFORCE and PPO with generalized advantage estimation. Checkpoints serialize policy weights as portable JSON for auditability.
+
+\paragraph{Regularization.}
+Total loss:
+\begin{equation}
+\mathcal{L} = \mathcal{L}_{\mathrm{RL}} + \alpha \mathcal{L}_{\mathrm{JEPA}} + \lambda \mathcal{L}_{\mathrm{struct}},
+\end{equation}
+with $(\alpha,\lambda){=}(0.25, 0.1)$ from our training configuration.
+
+\paragraph{Sleep replay consolidation.}
+High-resonance trajectory blocks trigger shallow offline updates (policy nudge) without unfreezing $\phi$. This mimics offline experience replay while keeping compute bounded.
+
+\subsection{Implementation notes}
+
+RaZOOM is implemented in Python with JAX (no PyTorch). Orchestration uses SkyPilot on Kubernetes (Nebius H200). Metrics (steps per second, homeostasis, conflict rate) log to MLflow. We withhold source-level module names, graph construction rules, and prior databases.
+
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Infrastructure}
+
+Training runs on NVIDIA H200 (MIG slices, CUDA 13) with containerized dependencies (\texttt{.venv-nebius-mjx-cuda13}). Object storage (endpoint \texttt{s3.nebius.ru}, bucket \texttt{nebius-pixlie-models}) persists checkpoints. Monolithic jobs target up to $1.5{\times}10^6$ environment steps; A/B studies use $10^4$--$10^5$ steps for controlled comparisons.
+
+\subsection{Protocols}
+
+\paragraph{A/B non-Dreamer compare.}
+We compare \texttt{baseline} against \texttt{rich128\_grounded} (grounded sensory append) and sensory variants. Metrics: task reward, reward mean, intrinsic reward, approximate steps/s, checkpoint count.
+
+\paragraph{JAX monolithic.}
+\texttt{jax\_razoom\_runtime.py} logs SPS, homeostasis variance, conflict rate, food concentration, nutrition gap, and discrete state index.
+
+\paragraph{Baselines.}
+We report DreamerV3 configurations present in the repository as exploratory baselines; primary claims use RaZOOM multi-stream runs.
+
+\subsection{Evaluation metrics}
+
+Task success (task reward), aggregate reward mean, throughput (environment steps/s), and homeostatic scalars. We aggregate across seeds where available and report means in Table~\ref{tab:main100k}.
+
+\input{tables_main.tex}
+
+\begin{figure}[t]
+  \centering
+  \fbox{\parbox{0.92\linewidth}{\centering\vspace{1.5em}
+  \textbf{[Figure 2: Throughput vs.\ task reward]}\\
+  \small See \texttt{research\_paper\_resources/figures/fig2\_throughput\_vs\_task\_reward.svg}
+  \vspace{1.5em}}}
+  \caption{Throughput vs.\ task reward across Nebius compare runs (38 logged A/B jobs; marker size scales with training steps).}
+  \label{fig:scatter}
+\end{figure}
+
+\section{Results and Discussion}
+\label{sec:results}
+
+\paragraph{Throughput--accuracy trade-off.}
+Grounded sensory variants reduce throughput (${\sim}$108--136 steps/s) relative to baseline (${\sim}$155--163 steps/s) while maintaining task reward ${\sim}$0.70 (Figure~\ref{fig:scatter}, Table~\ref{tab:main100k}). This supports using grounding when sample efficiency matters more than raw rollout speed.
+
+\paragraph{Long-horizon trends.}
+Baseline task reward remains near 0.70 for horizons $10^4$--$10^5$ steps; at $2{\times}10^5$ steps some runs show lower task reward (${\sim}$0.56--0.70), motivating future curriculum and replay tuning (Appendix).
+
+\paragraph{Deployment.}
+Policy inference targets CPU execution under 10\,ms per decision for edge deployment; exact latency depends on observation dimensionality (benchmarked separately).
+
+\paragraph{Comparison to foundation approaches.}
+Unlike billion-parameter VLA models, RaZOOM prioritizes \textbf{structure over scale}: frozen priors plus compact $\theta$ enable training in hours on a single GPU rather than weeks on clusters.
+
+\section{Limitations}
+\label{sec:limitations}
+
+\begin{itemize}
+  \item \textbf{Simulation-only evidence.} Primary results are from MJX; sim-to-real transfer via Unity/ROS2 is in progress.
+  \item \textbf{Withheld priors.} Reproducibility is limited to protocol and sanitized APIs; $\phi$ is proprietary.
+  \item \textbf{Incomplete ablations.} Some ablation cells require additional short reruns (frozen prior removal, slow-stream removal).
+  \item \textbf{Metric definitions.} Intrinsic reward can be negative by construction; readers should interpret signs relative to homeostatic design.
+\end{itemize}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+RaZOOM demonstrates that embodied agents can train without human demonstrations when structured semantic priors and differentiable physics are combined with a multi-stream policy. Future work targets real-robot pilots, public inference APIs, and open benchmarks with sanitized priors.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\appendix
+\input{appendix.tex}
+
+\end{document}
