@@ -1,7 +1,8 @@
 # kineforge-portfolio (public portfolio)
 
 **Live site:** https://illiaovcharenko1.github.io/kineforge-portfolio-/  
-**Repo:** https://github.com/illiaovcharenko1/kineforge-portfolio-
+**Repo:** https://github.com/illiaovcharenko1/kineforge-portfolio-  
+**HF Space:** https://huggingface.co/spaces/Brightforge-Software-Inc/kineforge-demo
 
 Safe public subset — **no weights, no roots_db, no topology JSON**.
 
