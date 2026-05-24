@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""KineForge public Gradio Space — mock inference only (no weights)."""
+"""Kineforge public Gradio Space — mock inference only (no weights)."""
 
 from __future__ import annotations
 
@@ -41,10 +41,10 @@ def run_inference(
     return "\n".join(lines)
 
 
-with gr.Blocks(title="KineForge Policy Demo") as demo:
+with gr.Blocks(title="Kineforge Policy Demo") as demo:
     gr.Markdown(
         """
-# KineForge — Multi-Stream Embodied Policy (Public Demo)
+# Kineforge — Multi-Stream Embodied Policy (Public Demo)
 
 **~157K trainable** parameters + **frozen semantic priors** on **MuJoCo MJX**.
 This Space runs a **sanitized mock** — no proprietary weights or prior databases.

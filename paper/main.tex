@@ -4,17 +4,22 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{subcaption}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{ifthen}
+\graphicspath{{figures/}}
 
-\title{\textbf{KineForge: Sample-Efficient Embodied Control with Frozen Semantic Priors and Differentiable Physics}\\[0.4em]
-\large Technical Report v1.0}
-\author{Illia Ovcharenko \\ KineForge Research \\ \texttt{contact@kineforge.ai}}
+\title{\textbf{Kineforge: Sample-Efficient Embodied Control with Frozen Semantic Priors and Differentiable Physics}\\[0.4em]
+\large Technical Report v1.0 --- Brightforge Software Inc.}
+\author{Illia Ovcharenko \\[0.3em] \textit{Brightforge Software Inc.} \\ \textit{Kineforge AI-Lab.} \\ \texttt{illia.ovcharenko@brightforge.ltd}}
 \date{May 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Embodied reinforcement learning often depends on large human demonstration datasets or billion-parameter foundation policies, limiting deployment where teleoperation is unsafe or uneconomical. We present \textbf{KineForge}, combining differentiable physics (MuJoCo MJX) with a \textbf{multi-stream policy} that separates reflexive control, affect-modulated valuation, and topology-routed deliberation. A \textbf{frozen semantic prior} (${\sim}$2.6M parameters) supplies structured inductive bias while ${\sim}$157K policy parameters are updated during learning, enabling single-GPU training and CPU inference under 10\,ms. On NVIDIA H200 rollouts (${\ge}$345K environment steps in monolithic jobs) and controlled 100K-step A/B studies, agents reach task rewards ${\sim}$0.70 with stable homeostatic metrics. Optional sensory grounding trades throughput (${\sim}$159 vs.\ ${\sim}$108 env-steps/s) for comparable task success. We describe a sanitized evaluation protocol; proprietary prior databases are not released.
+Embodied reinforcement learning often depends on large human demonstration datasets or billion-parameter foundation policies, limiting deployment where teleoperation is unsafe or uneconomical. We present \textbf{Kineforge}, combining differentiable physics (MuJoCo MJX) with a \textbf{multi-stream policy} that separates reflexive control, affect-modulated valuation, and topology-routed deliberation. A \textbf{frozen semantic prior} (${\sim}$2.6M parameters) supplies structured inductive bias while ${\sim}$157K policy parameters are updated during learning, enabling single-GPU training and CPU inference under 10\,ms. On NVIDIA H200 rollouts (${\ge}$345K environment steps in monolithic jobs) and controlled 100K-step A/B studies, agents reach task rewards ${\sim}$0.70 with stable homeostatic metrics. Optional sensory grounding trades throughput (${\sim}$159 vs.\ ${\sim}$108 env-steps/s) for comparable task success. We describe a sanitized evaluation protocol; proprietary prior databases are not released.
 \end{abstract}
 
 \section{Introduction}
@@ -22,7 +27,7 @@ Embodied reinforcement learning often depends on large human demonstration datas
 
 Training physical agents at scale remains bottlenecked by \emph{data}, not compute. Industrial manipulation, hazardous material handling, and remote logistics often forbid the collection of large teleoperation corpora. Recent vision-language-action (VLA) and foundation policies achieve strong performance but require web-scale pretraining, cloud inference, and demonstration-heavy fine-tuning~\cite{brohan2023rt2,ye2024rlfp}. Model-based reinforcement learning (MBRL) with learned world models reduces sample complexity in simulation~\cite{hafner2023dreamerv3}, yet struggles on novel tasks without structural priors.
 
-We argue that \textbf{structured inductive bias}---not parameter count---is the lever for sample-efficient embodied control. \textbf{KineForge} is a lightweight stack that couples (i) \textbf{differentiable physics simulation} (MJX) for gradient-friendly rollouts, (ii) a \textbf{multi-stream policy} with parallel reflex, affect, and planning pathways, and (iii) a \textbf{frozen semantic prior} encoding domain structure without online supervision. The trainable policy is compact (${\sim}$157K parameters); priors remain fixed (${\sim}$2.6M parameters), decoupling representation learning from control learning.
+We argue that \textbf{structured inductive bias}---not parameter count---is the lever for sample-efficient embodied control. \textbf{Kineforge} is a lightweight stack that couples (i) \textbf{differentiable physics simulation} (MJX) for gradient-friendly rollouts, (ii) a \textbf{multi-stream policy} with parallel reflex, affect, and planning pathways, and (iii) a \textbf{frozen semantic prior} encoding domain structure without online supervision. The trainable policy is compact (${\sim}$157K parameters); priors remain fixed (${\sim}$2.6M parameters), decoupling representation learning from control learning.
 
 \paragraph{Contributions.}
 \begin{itemize}
@@ -39,7 +44,7 @@ In aggregated 100K-step studies, baseline agents achieve mean task reward ${\sim
 \label{sec:related}
 
 \paragraph{Sample-efficient embodied RL.}
-RL with foundation priors (RLFP) demonstrates that frozen value and success models can accelerate real-robot learning~\cite{ye2024rlfp}. KineForge differs by using \emph{structured symbolic priors} rather than general VLMs, targeting edge deployability.
+RL with foundation priors (RLFP) demonstrates that frozen value and success models can accelerate real-robot learning~\cite{ye2024rlfp}. Kineforge differs by using \emph{structured symbolic priors} rather than general VLMs, targeting edge deployability.
 
 \paragraph{World models and differentiable simulation.}
 DreamerV3 learns latent dynamics for long-horizon control~\cite{hafner2023dreamerv3}. Differentiable engines (Brax/MJX) enable gradients through physics~\cite{freeman2021mjx}. We use MJX as the environment backend while learning a factored policy rather than a monolithic world model.
@@ -66,7 +71,7 @@ Let $\theta$ denote trainable policy parameters ($|\theta|{\approx}1.57{\times}1
 
 \subsection{System overview}
 
-Figure~\ref{fig:architecture} illustrates KineForge. Per timestep, the agent encodes observations, retrieves a frozen semantic embedding, and routes decisions through three streams before actuating the differentiable simulator.
+Figure~\ref{fig:architecture} illustrates Kineforge. Per timestep, the agent encodes observations, retrieves a frozen semantic embedding, and routes decisions through three streams before actuating the differentiable simulator.
 
 \begin{figure}[t]
   \centering
@@ -75,7 +80,7 @@ Figure~\ref{fig:architecture} illustrates KineForge. Per timestep, the agent enc
   \small Observations $\rightarrow$ Frozen semantic encoder $\rightarrow$ \\
   Fast (reflex) $\parallel$ Valence (affect) $\parallel$ Slow (topology route) $\rightarrow$ MJX\\
   \vspace{2.8em}}}
-  \caption{KineForge control stack. Public diagrams omit proprietary graph connectivity and prior token identities.}
+  \caption{Kineforge control stack. Public diagrams omit proprietary graph connectivity and prior token identities.}
   \label{fig:architecture}
 \end{figure}
 
@@ -129,14 +134,14 @@ High-resonance trajectory blocks trigger shallow offline updates (policy nudge) 
 
 \subsection{Implementation notes}
 
-KineForge is implemented in Python with JAX (no PyTorch). Orchestration uses SkyPilot on Kubernetes (Nebius H200). Metrics (steps per second, homeostasis, conflict rate) log to MLflow. We withhold source-level module names, graph construction rules, and prior databases.
+Kineforge is implemented in Python with JAX (no PyTorch). Orchestration uses SkyPilot on Kubernetes (Nebius H200). Metrics (steps per second, homeostasis, conflict rate) log to MLflow. We withhold source-level module names, graph construction rules, and prior databases.
 
 \section{Experiments}
 \label{sec:experiments}
 
 \subsection{Infrastructure}
 
-Training runs on NVIDIA H200 (MIG slices, CUDA 13) with containerized dependencies (\texttt{.venv-nebius-mjx-cuda13}). Object storage (endpoint \texttt{s3.nebius.ru}, bucket \texttt{nebius-pixlie-models}) persists checkpoints. Monolithic jobs target up to $1.5{\times}10^6$ environment steps; A/B studies use $10^4$--$10^5$ steps for controlled comparisons.
+Training runs on NVIDIA H200 (MIG slices, CUDA 13) with containerized dependencies (\texttt{.venv-nebius-mjx-cuda13}). Object storage uses Nebius \texttt{us-central1} (\texttt{storage.us-central1.nebius.cloud}); MLflow day reports and US \texttt{bootstrap/} archives hold fresh runs, while legacy \texttt{eu-north/} snapshots are retained for comparison. Monolithic jobs target up to $1.5{\times}10^6$ environment steps; A/B studies use $10^4$--$10^5$ steps for controlled comparisons.
 
 \subsection{Protocols}
 
@@ -147,7 +152,7 @@ We compare \texttt{baseline} against \texttt{rich128\_grounded} (grounded sensor
 \texttt{jax\_kineforge\_runtime.py} logs SPS, homeostasis variance, conflict rate, food concentration, nutrition gap, and discrete state index.
 
 \paragraph{Baselines.}
-We report DreamerV3 configurations present in the repository as exploratory baselines; primary claims use KineForge multi-stream runs.
+We report DreamerV3 configurations present in the repository as exploratory baselines; primary claims use Kineforge multi-stream runs.
 
 \subsection{Evaluation metrics}
 
@@ -155,13 +160,12 @@ Task success (task reward), aggregate reward mean, throughput (environment steps
 
 \input{tables_main.tex}
 
-\begin{figure}[t]
+\begin{figure}[H]
   \centering
-  \fbox{\parbox{0.92\linewidth}{\centering\vspace{1.5em}
-  \textbf{[Figure 2: Throughput vs.\ task reward]}\\
-  \small See \texttt{research\_paper\_resources/figures/fig2\_throughput\_vs\_task\_reward.svg}
-  \vspace{1.5em}}}
-  \caption{Throughput vs.\ task reward across Nebius compare runs (38 logged A/B jobs; marker size scales with training steps).}
+  \IfFileExists{figures/fig2_throughput_vs_task_reward.png}{%
+    \includegraphics[width=0.95\linewidth]{fig2_throughput_vs_task_reward.png}}{%
+    \fbox{\parbox{0.9\linewidth}{\centering Missing fig2 PNG in figures/}}}
+  \caption{Throughput vs.\ task reward across Nebius compare runs (38 logged A/B jobs).}
   \label{fig:scatter}
 \end{figure}
 
@@ -171,14 +175,25 @@ Task success (task reward), aggregate reward mean, throughput (environment steps
 \paragraph{Throughput--accuracy trade-off.}
 Grounded sensory variants reduce throughput (${\sim}$108--136 steps/s) relative to baseline (${\sim}$155--163 steps/s) while maintaining task reward ${\sim}$0.70 (Figure~\ref{fig:scatter}, Table~\ref{tab:main100k}). This supports using grounding when sample efficiency matters more than raw rollout speed.
 
+\begin{figure}[H]
+  \centering
+  \IfFileExists{figures/fig5_learning_panel.png}{%
+    \includegraphics[width=\linewidth]{fig5_learning_panel.png}}{%
+    \IfFileExists{figures/fig5_homeostasis_curve.png}{%
+      \includegraphics[width=\linewidth]{fig5_homeostasis_curve.png}}{%
+      \fbox{\parbox{0.9\linewidth}{\centering Missing fig5 PNG in figures/}}}}
+  \caption{MLflow homeostasis (left) and conflict rate (right) vs.\ training steps (monolithic H200 run).}
+  \label{fig:learning}
+\end{figure}
+
 \paragraph{Long-horizon trends.}
-Baseline task reward remains near 0.70 for horizons $10^4$--$10^5$ steps; at $2{\times}10^5$ steps some runs show lower task reward (${\sim}$0.56--0.70), motivating future curriculum and replay tuning (Appendix).
+MLflow \texttt{day\_block} logs from a monolithic H200 run (${\sim}$5K--$1.1{\times}10^6$ steps, 221 checkpoints) show homeostasis stabilizing near ${\sim}$0.57 and conflict rate declining from ${\sim}$1.0 toward ${\sim}$0.67 (Figure~\ref{fig:learning}). Baseline task reward remains near 0.70 for horizons $10^4$--$10^5$ steps in A/B compares; at $2{\times}10^5$ steps some runs show lower task reward (${\sim}$0.56--0.70), motivating future curriculum and replay tuning (Appendix).
 
 \paragraph{Deployment.}
 Policy inference targets CPU execution under 10\,ms per decision for edge deployment; exact latency depends on observation dimensionality (benchmarked separately).
 
 \paragraph{Comparison to foundation approaches.}
-Unlike billion-parameter VLA models, KineForge prioritizes \textbf{structure over scale}: frozen priors plus compact $\theta$ enable training in hours on a single GPU rather than weeks on clusters.
+Unlike billion-parameter VLA models, Kineforge prioritizes \textbf{structure over scale}: frozen priors plus compact $\theta$ enable training in hours on a single GPU rather than weeks on clusters.
 
 \section{Limitations}
 \label{sec:limitations}
@@ -193,11 +208,14 @@ Unlike billion-parameter VLA models, KineForge prioritizes \textbf{structure ove
 \section{Conclusion}
 \label{sec:conclusion}
 
-KineForge demonstrates that embodied agents can train without human demonstrations when structured semantic priors and differentiable physics are combined with a multi-stream policy. Future work targets real-robot pilots, public inference APIs, and open benchmarks with sanitized priors.
+Kineforge demonstrates that embodied agents can train without human demonstrations when structured semantic priors and differentiable physics are combined with a multi-stream policy. Future work targets real-robot pilots, public inference APIs, and open benchmarks with sanitized priors.
 
+\FloatBarrier
+\clearpage
 \bibliographystyle{plain}
 \bibliography{references}
 
+\clearpage
 \appendix
 \input{appendix.tex}
 

@@ -1,19 +1,20 @@
 ---
-title: KineForge
+title: Kineforge Demo
 emoji: 🤖
 colorFrom: blue
 colorTo: indigo
 sdk: gradio
 sdk_version: 4.44.1
-app_file: ../demo/gradio_app.py
+python_version: 3.12.8
+app_file: app.py
 pinned: false
 license: apache-2.0
-short_description: Public demo — embodied RL with frozen priors (mock inference)
+short_description: Public mock — embodied RL with frozen priors (no weights)
 ---
 
-# KineForge (public demo)
+# Kineforge (public demo)
 
-**KineForge** trains embodied policies with **~157K trainable parameters** and **~2.6M frozen semantic priors** on **MuJoCo MJX** — without human demonstrations.
+**Kineforge** trains embodied policies with **~157K trainable parameters** and **~2.6M frozen semantic priors** on **MuJoCo MJX** — without human demonstrations.
 
 This Space runs the **sanitized Gradio mock** from the [portfolio repo](https://github.com/illiaovcharenko1/kineforge-portfolio-). Weights and prior databases are **not** published.
 
@@ -26,17 +27,18 @@ This Space runs the **sanitized Gradio mock** from the [portfolio repo](https://
 
 ## Links
 
+- PDF: https://illiaovcharenko1.github.io/kineforge-portfolio-/kineforge_tech_report_v1.0.pdf
 - GitHub: https://github.com/illiaovcharenko1/kineforge-portfolio-
-- Paper: see `paper/main.tex` in repo (Overleaf / arXiv pack)
+- Site: https://illiaovcharenko1.github.io/kineforge-portfolio-/
 
 ## Citation (draft)
 
 ```bibtex
 @techreport{kineforge2026,
-  title={KineForge: Sample-Efficient Embodied Control with Frozen Semantic Priors},
+  title={Kineforge: Sample-Efficient Embodied Control with Frozen Semantic Priors and Differentiable Physics},
   author={Ovcharenko, Illia},
   year={2026},
-  note={Technical report v1.0}
+  note={Technical report v1.0, Brightforge Software Inc.}
 }
 ```
 
