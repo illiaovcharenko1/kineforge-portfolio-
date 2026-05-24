@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KineForge — Embodied RL without demonstrations</title>
+  <title>Kineforge — Embodied RL without demonstrations</title>
   <style>
     :root { --bg:#0b1020; --fg:#e8ecf4; --accent:#3b82f6; --muted:#94a3b8; }
     * { box-sizing: border-box; }
@@ -17,39 +17,48 @@
     .card { background:#141b2d; border:1px solid #243049; border-radius:12px; padding:1.25rem; }
     .card h2 { margin:0 0 .5rem; font-size:1.1rem; }
     .muted { color:var(--muted); font-size:.9rem; }
+    .btn { display:inline-block; margin-top:.5rem; padding:.5rem 1rem; background:var(--accent); color:#fff !important; border-radius:8px; text-decoration:none; font-weight:600; }
     img { max-width:100%; border-radius:8px; background:#fff; }
     footer { text-align:center; padding:2rem; color:var(--muted); font-size:.85rem; }
   </style>
 </head>
 <body>
   <header>
-    <p class="tag">Technical report · Apache-2.0</p>
-    <h1>KineForge</h1>
+    <p class="tag">Technical Report v1.0 · Brightforge Software Inc.</p>
+    <h1>Kineforge</h1>
     <p>Sample-efficient embodied control with frozen semantic priors (~2.6M fixed) and a compact trainable policy (~157K) on differentiable physics (MuJoCo MJX).</p>
+    <p><a class="btn" href="kineforge_tech_report_v1.0.pdf">Download PDF (v1.0)</a></p>
   </header>
   <main>
     <div class="grid">
       <div class="card">
-        <h2>Paper &amp; data</h2>
-        <p class="muted">Overleaf / arXiv pack in repo <code>paper/</code> and <code>figures/</code>.</p>
-        <p><a href="https://github.com/illiaovcharenko1/kineforge-portfolio-">GitHub</a></p>
+        <h2>Tech report</h2>
+        <p class="muted">PDF from Overleaf. arXiv ID will be linked here after endorsement + submit.</p>
+        <p><a href="kineforge_tech_report_v1.0.pdf">PDF</a> · <a href="https://github.com/illiaovcharenko1/kineforge-portfolio-">GitHub (TeX + figures)</a></p>
+        <p class="muted">arXiv: <em>pending endorsement (cs.RO)</em></p>
       </div>
       <div class="card">
-        <h2>Demo</h2>
-        <p class="muted">Gradio mock inference (no weights in public repo).</p>
-        <p><a href="https://huggingface.co/spaces/illiaovcharenko1/kineforge-demo">HF Space (pending)</a></p>
+        <h2>Live demo</h2>
+        <p class="muted">Gradio mock — no weights in public repo.</p>
+        <p><a href="https://huggingface.co/spaces/Brightforge-Software-Inc/kineforge-demo">Hugging Face Space</a></p>
+      </div>
+      <div class="card">
+        <h2>Contact</h2>
+        <p class="muted">Brightforge Software Inc. · Kineforge AI-Lab.</p>
+        <p><a href="mailto:illia.ovcharenko@brightforge.ltd">illia.ovcharenko@brightforge.ltd</a></p>
+        <p><a href="https://brightforge.ltd">brightforge.ltd</a></p>
       </div>
       <div class="card">
         <h2>Metrics</h2>
-        <p class="muted">Nebius H200 — ~158 vs ~108 env-steps/s; task reward ~0.70.</p>
+        <p class="muted">Nebius H200 — ~159 vs ~108 env-steps/s; task reward ~0.70.</p>
       </div>
     </div>
     <h2>Learning curve (MLflow)</h2>
-    <p class="muted">Homeostasis vs training steps — monolithic run, US object storage.</p>
+    <p class="muted">Homeostasis vs training steps — monolithic run.</p>
     <p><img src="https://raw.githubusercontent.com/illiaovcharenko1/kineforge-portfolio-/main/figures/fig5_homeostasis_curve.svg" alt="Homeostasis learning curve" width="640" /></p>
     <h2>Throughput vs task reward</h2>
     <p><img src="https://raw.githubusercontent.com/illiaovcharenko1/kineforge-portfolio-/main/figures/fig2_throughput_vs_task_reward.svg" alt="Throughput scatter" width="640" /></p>
   </main>
-  <footer>© 2026 KineForge · No weights or proprietary priors in this repository.</footer>
+  <footer>© 2026 Kineforge · Brightforge Software Inc. · No weights or proprietary priors in this repository.</footer>
 </body>
 </html>

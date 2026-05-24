@@ -34,7 +34,9 @@ def run_inference(
         f"head (2): argmax ~ {_mock_logits(seed + 2, 2).index(max(_mock_logits(seed + 2, 2)))}",
         f"macro (4): argmax ~ {_mock_logits(seed + 3, 4).index(max(_mock_logits(seed + 3, 4)))}",
         "",
-        "Paper & code: github.com/illiaovcharenko1/kineforge-portfolio-",
+        "PDF: illiaovcharenko1.github.io/kineforge-portfolio-/kineforge_tech_report_v1.0.pdf",
+        "Demo + code: github.com/illiaovcharenko1/kineforge-portfolio-",
+        "arXiv: pending (cs.RO endorsement)",
     ]
     return "\n".join(lines)
 
